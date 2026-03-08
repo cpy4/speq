@@ -220,7 +220,6 @@ Document key decisions and their rationale:
 
 ## Security Considerations
 Authentication, authorization, input validation, data protection measures.
-```
 
 ### Rules for This Phase
 - Every requirement from Phase 1 must be addressed in the design.
