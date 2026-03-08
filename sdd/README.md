@@ -101,6 +101,27 @@ your-project/
 └── CLAUDE.md / AGENTS.md             # Thin pointer (~10 lines referencing sdd/RULES.md)
 ```
 
+## Keeping sdd/ Up to Date
+
+Since `sdd/` is copied into each project, you need a way to pull updates when the system evolves.
+
+### Self-update from GitHub
+
+Every project that has `sdd/` includes an update script:
+
+```bash
+# Update sdd/ and re-run setup interactively
+./sdd/update.sh
+
+# Update and re-run setup for specific tools
+./sdd/update.sh claude-code cursor
+
+# Update files only, skip setup
+./sdd/update.sh --no-setup
+```
+
+This shallow-clones the latest speq repo from GitHub, replaces `sdd/`, and re-runs setup to refresh slash commands and rules.
+
 ## Tips
 
 - **Commit everything** — specs, steering docs, and the sdd/ folder all belong in version control
