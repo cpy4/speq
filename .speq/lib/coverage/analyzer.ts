@@ -195,14 +195,15 @@ export function analyze(): CoverageReport | null {
   }
   
   const speqPath = path.join(projectRoot, '.speq');
+  const specsPath = path.join(projectRoot, '.specs');
   
   if (!fs.existsSync(speqPath)) {
     console.error('Error: .speq directory not found');
     return null;
   }
   
-  const steeringDocs = findSteeringDocs(speqPath);
-  const specs = findSpecs(speqPath);
+  const steeringDocs = findSteeringDocs(specsPath);
+  const specs = findSpecs(specsPath);
   const gaps = identifyGaps(steeringDocs, specs);
   
   const specsComplete = specs.filter(s => s.status === 'complete').length;
