@@ -16,7 +16,18 @@ First, read `.speq/RULES.md` (Steering Docs section) and the templates in `.speq
 
 ## Generate These Files
 
-**`.specs/steering/product.md`** — Product purpose, target users, core features, business objectives.
+**`.specs/steering/product.md`** — Product purpose, target users, core features, business objectives. Include a `speq:features` block listing all core features as slugs:
+
+```markdown
+## Features
+
+<!-- speq:features — list features that should have specs. slugs map to .specs/specs/<slug>/ -->
+- `feature-slug` — Short description
+- `another-feature` — Another description
+<!-- speq:features:end -->
+```
+
+Each slug should be kebab-case and map to a likely spec folder name.
 
 **`.specs/steering/tech.md`** — Languages, frameworks, versions, dev tools, hard prohibitions, preferred patterns. Be specific with version numbers.
 

@@ -18,7 +18,18 @@ Examine:
 
 Generate these files:
 
-**`.specs/steering/product.md`** — What the product does, target users, core features, business objectives. Infer from README, routes, UI structure.
+**`.specs/steering/product.md`** — What the product does, target users, core features, business objectives. Infer from README, routes, UI structure. Include a `speq:features` block listing all core features as slugs:
+
+```markdown
+## Features
+
+<!-- speq:features — list features that should have specs. slugs map to .specs/specs/<slug>/ -->
+- `feature-slug` — Short description
+- `another-feature` — Another description
+<!-- speq:features:end -->
+```
+
+Each slug should be kebab-case and map to a likely spec folder name. Include every distinct feature the product has or needs.
 
 **`.specs/steering/tech.md`** — Languages, frameworks, versions, dev tools, hard prohibitions, preferred patterns. Be specific — include version numbers, reference actual config.
 
