@@ -1,4 +1,4 @@
-import type { CoverageReport } from '../types.js';
+import type { CoverageReport, LinearCoverageReport } from '../types.js';
 
 function escapeHtml(str: string): string {
   return str
@@ -114,6 +114,24 @@ function renderGapsSection(gaps: CoverageReport['gaps']): string {
     <div class="gap-item gap-${gap.type}">
       <span class="gap-type">${gap.type.replace(/-/g, ' ')}</span>
       <span class="gap-message">${escapeHtml(gap.message)}</span>
+    </div>
+  `).join('');
+}
+
+function renderUnspeccedIssuesHtml(report: LinearCoverageReport): string {
+  if (report.unspecced.length === 0) {
+    return '<p class="empty">All Linear issues have spec coverage</p>';
+  }
+  
+  return report.unspecced.map(item => `
+    <div class="item unspecced-item">
+      <div class="item-header">
+        <span class="badge no-spec">[NO SPEC]</span>
+        <span class="item-name">${escapeHtml(item.issue.identifier)}</span>
+        <span class="status-label">${escapeHtml(item.issue.state.name)}</span>
+      </div>
+      <div class="issue-title">${escapeHtml(item.issue.title)}</div>
+      <a href="${escapeHtml(item.issue.url)}" class="issue-link" target="_blank" rel="noopener">Open in Linear →</a>
     </div>
   `).join('');
 }
@@ -316,6 +334,32 @@ export function renderHtml(report: CoverageReport): string {
       display: block;
       font-size: 0.875rem;
     }
+    
+    .badge.no-spec {
+      background: #06b6d4;
+    }
+    
+    .unspecced-item {
+      border-left: 3px solid #06b6d4;
+    }
+    
+    .issue-title {
+      margin-top: 0.5rem;
+      font-size: 0.875rem;
+      color: var(--text-muted);
+    }
+    
+    .issue-link {
+      display: inline-block;
+      margin-top: 0.5rem;
+      font-size: 0.75rem;
+      color: var(--accent);
+      text-decoration: none;
+    }
+    
+    .issue-link:hover {
+      text-decoration: underline;
+    }
   </style>
 </head>
 <body>
@@ -358,6 +402,12 @@ export function renderHtml(report: CoverageReport): string {
       <h2>Gaps</h2>
       ${renderGapsSection(report.gaps)}
     </section>
+    ${report.linearCoverage ? `
+    <section>
+      <h2>Unspecced Issues</h2>
+      ${renderUnspeccedIssuesHtml(report.linearCoverage)}
+    </section>
+    ` : ''}
   </div>
 </body>
 </html>`;

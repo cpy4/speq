@@ -40,6 +40,32 @@ export interface CoverageReport {
     specsComplete: number;
     gapsCount: number;
   };
+  linearCoverage?: LinearCoverageReport;
+}
+
+export interface LinearIssue {
+  id: string;
+  identifier: string;
+  title: string;
+  state: {
+    name: string;
+  };
+  team: {
+    key: string;
+  };
+  url: string;
+}
+
+export interface UnspeccedIssue {
+  issue: LinearIssue;
+  hasSpec: false;
+}
+
+export interface LinearCoverageReport {
+  issues: LinearIssue[];
+  unspecced: UnspeccedIssue[];
+  totalCount: number;
+  unspeccedCount: number;
 }
 
 export interface CoverageOptions {
@@ -47,6 +73,8 @@ export interface CoverageOptions {
   verbose: boolean;
   html: boolean;
   output?: string;
+  linear: boolean;
+  linearTeam?: string;
 }
 
 export type Status = 'complete' | 'partial' | 'empty' | 'missing';

@@ -1,4 +1,4 @@
-import type { CoverageReport, CoverageOptions } from '../types.js';
+import type { CoverageReport, CoverageOptions, LinearCoverageReport } from '../types.js';
 
 const RESET = '\x1b[0m';
 const GREEN = '\x1b[32m';
@@ -78,6 +78,34 @@ function formatSpec(spec: { name: string; status: string; phases: { requirements
   return `    ${connector} ${spec.name.padEnd(22)} ${icon} ${statusLabel}${hint}`;
 }
 
+function formatUnspeccedIssue(unspecced: { issue: { identifier: string; title: string } }, connector: string): string {
+  const { identifier, title } = unspecced.issue;
+  return `│   ${connector} ${CYAN}[NO SPEC]${RESET} ${identifier.padEnd(10)} — ${title}`;
+}
+
+export function renderUnspeccedIssues(report: LinearCoverageReport, verbose: boolean): string {
+  const lines: string[] = [];
+
+  lines.push('');
+  lines.push(BOLD + 'Unspecced Issues' + RESET);
+
+  if (report.unspeccedCount === 0) {
+    lines.push(`  ${GREEN}All Linear issues have spec coverage${RESET}`);
+    return lines.join('\n');
+  }
+
+  for (let i = 0; i < report.unspecced.length; i++) {
+    const unspecced = report.unspecced[i];
+    const isLast = i === report.unspecced.length - 1;
+    lines.push(formatUnspeccedIssue(unspecced, isLast ? '└──' : '├──'));
+  }
+
+  lines.push('');
+  lines.push(DIM + `Total: ${report.unspeccedCount} of ${report.totalCount} issues without spec` + RESET);
+
+  return lines.join('\n');
+}
+
 export function renderTerminal(report: CoverageReport, options: CoverageOptions): string {
   const lines: string[] = [];
 
@@ -100,7 +128,6 @@ export function renderTerminal(report: CoverageReport, options: CoverageOptions)
   if (report.specs.length === 0 && report.gaps.filter(g => g.type === 'missing-spec').length === 0) {
     lines.push('    └── ' + DIM + '(no specs found)' + RESET);
   } else {
-    // Merge existing specs + missing-spec gaps into one sorted list
     const allItems: { name: string; status: string; phases: { requirements: boolean; design: boolean; tasks: boolean } }[] = [
       ...report.specs,
       ...report.gaps
@@ -117,13 +144,11 @@ export function renderTerminal(report: CoverageReport, options: CoverageOptions)
 
   lines.push('');
 
-  // Summary line
   const { specsComplete, specsTotal, gapsCount } = report.totals;
   const coveragePct = specsTotal > 0 ? Math.round((specsComplete / specsTotal) * 100) : 0;
   const gapStr = gapsCount > 0 ? `, ${RED}${gapsCount} gap${gapsCount !== 1 ? 's' : ''} found${RESET}` : ` ${GREEN}— no gaps!${RESET}`;
   lines.push(`${BOLD}Coverage:${RESET} ${specsComplete}/${specsTotal} specs complete (${coveragePct}%)${gapStr}`);
 
-  // Legend
   lines.push('');
   lines.push(DIM + 'Legend:' + RESET);
   lines.push(DIM + `  ${GREEN}✓ complete${RESET}${DIM}   all required files present` + RESET);
@@ -131,14 +156,18 @@ export function renderTerminal(report: CoverageReport, options: CoverageOptions)
   lines.push(DIM + `  ${YELLOW}✗ empty${RESET}${DIM}      folder/block exists with no content` + RESET);
   lines.push(DIM + `  ${RED}✗ missing${RESET}${DIM}    no speq:features block (steering) or no spec created yet` + RESET);
   lines.push(DIM + `  ${CYAN}[GAP]${RESET}${DIM}        feature declared in steering but no spec exists` + RESET);
+  lines.push(DIM + `  ${CYAN}[NO SPEC]${RESET}${DIM}   Linear issue without spec coverage` + RESET);
 
-  // Verbose gap detail
   if (options.verbose && report.gaps.length > 0) {
     lines.push('');
     lines.push(BOLD + 'Gap details:' + RESET);
     for (const gap of report.gaps) {
       lines.push(`  • ${gap.message}`);
     }
+  }
+
+  if (report.linearCoverage) {
+    lines.push(renderUnspeccedIssues(report.linearCoverage, options.verbose));
   }
 
   return lines.join('\n');

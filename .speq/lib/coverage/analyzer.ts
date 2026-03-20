@@ -1,6 +1,8 @@
 import * as fs from 'fs';
 import * as path from 'path';
-import type { CoverageReport, SteeringDoc, Spec, Gap, Feature, SpecPhase } from './types.js';
+import type { CoverageReport, SteeringDoc, Spec, Gap, Feature, SpecPhase, LinearCoverageReport, LinearIssue, UnspeccedIssue } from './types.js';
+import { fetchOpenIssues } from './linear-client.js';
+import { scanForLinearIssues } from './spec-scanner.js';
 
 const ENCODING = 'utf-8';
 const FEATURES_START = '<!-- speq:features -->';
@@ -223,4 +225,32 @@ export function analyze(): CoverageReport | null {
 
 export function getProjectRoot(): string | null {
   return findProjectRoot();
+}
+
+export async function analyzeLinearIssues(teamKey?: string): Promise<LinearCoverageReport | null> {
+  try {
+    const issues = await fetchOpenIssues(teamKey);
+    const specMap = await scanForLinearIssues();
+
+    const unspecced: UnspeccedIssue[] = [];
+
+    for (const issue of issues) {
+      if (!specMap.has(issue.identifier)) {
+        unspecced.push({
+          issue,
+          hasSpec: false
+        });
+      }
+    }
+
+    return {
+      issues,
+      unspecced,
+      totalCount: issues.length,
+      unspeccedCount: unspecced.length
+    };
+  } catch (error) {
+    console.error(error instanceof Error ? error.message : 'Unknown error');
+    return null;
+  }
 }
